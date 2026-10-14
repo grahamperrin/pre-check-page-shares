@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "pre-check page shares – Reddit, Mastodon and more",
+  "version": "0.6.0",
+  "description": "Before you post a link, check whether the page has already been shared on Reddit, Mastodon, Hacker News, Lemmy or Lobsters.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "pre-check-page-shares@example.com",
+      "strict_min_version": "128.0"
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "contextualIdentities",
+    "scripting",
+    "storage"
+  ],
+  "optional_host_permissions": [
+    "https://*/*"
+  ],
+  "action": {
+    "default_title": "Posted anywhere already?",
+    "default_popup": "popup.html"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "type": "module"
+  },
+  "optional_permissions": [
+    "cookies"
+  ]
+}

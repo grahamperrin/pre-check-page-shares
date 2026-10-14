@@ -1,0 +1,30 @@
+/* Accent: dark amber on light panels, yellow on dark ones (the old purple measured only 3.2-3.9:1 on dark). */
+:root { color-scheme: light dark; --muted: #6b7280; --line: #d1d5db; --accent: #7a5200; }
+@media (prefers-color-scheme: dark) { :root { --muted: #9ca3af; --line: #374151; --accent: #ffd54a; } }
+body { width: 360px; max-height: 520px; margin: 0; font: 13px/1.4 system-ui, sans-serif; display: flex; flex-direction: column; }
+header, footer { padding: 10px 12px; }
+header { border-bottom: 1px solid var(--line); }
+#page { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#summary { font-weight: 600; font-size: 14px; margin-top: 2px; }
+#summary.hit { color: var(--accent); }
+main { overflow-y: auto; flex: 1; }
+.host { display: flex; justify-content: space-between; padding: 6px 12px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); border-bottom: 1px solid var(--line); }
+.post { display: block; padding: 8px 12px; color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+.post:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.who { font-weight: 600; }
+.meta { color: var(--muted); font-size: 11px; }
+.text { margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#notes { margin: 0; padding-left: 14px; color: var(--muted); font-size: 11px; }
+#notes:empty { display: none; }
+.host a { color: var(--accent); text-transform: none; letter-spacing: 0; }
+.sub { padding: 6px 12px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--line); font-style: italic; }
+#tally { margin-top: 2px; font-size: 11px; color: var(--muted); }
+footer { border-top: 1px solid var(--line); font-size: 11px; }
+#notes { margin: 0 0 6px; }
+/* Details (left), Save (centre), Settings (right). Explicit columns keep Save centred even when Details or Save is hidden. */
+.bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+#details-toggle { grid-column: 1; grid-row: 1; justify-self: start; }
+#save { grid-column: 2; grid-row: 1; justify-self: center; }
+#settings { grid-column: 3; grid-row: 1; justify-self: end; color: var(--accent); white-space: nowrap; }
+.linklike { padding: 0; border: 0; background: none; font: inherit; color: var(--accent); text-decoration: underline; cursor: pointer; }
+#log { margin: 6px 0 0; max-height: 140px; overflow: auto; white-space: pre-wrap; word-break: break-all; font: 10.5px/1.35 ui-monospace, monospace; color: var(--muted); }

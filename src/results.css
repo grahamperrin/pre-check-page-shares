@@ -1,0 +1,49 @@
+/* Results tab. A warm, paper-like scheme, deliberately not the popup's: restrained, low contrast between
+   surfaces, and a charcoal (not near-black) dark mode so a full-page view isn't overwhelmingly dark.
+   Follows the system light/dark setting unless Settings forces one via data-theme on <html>. */
+:root {
+  color-scheme: light;
+  --bg: #faf9f5; --surface: #ffffff; --text: #1f1e1d; --muted: #6a695f; --line: #e6e4db; --accent: #a8472a; --wash: #f3efe6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #262624; --surface: #30302e; --text: #f0eee6; --muted: #aaa89e; --line: #43423d; --accent: #e8946f; --wash: #3a3935;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #262624; --surface: #30302e; --text: #f0eee6; --muted: #aaa89e; --line: #43423d; --accent: #e8946f; --wash: #3a3935;
+}
+
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.wrap { max-width: 44rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+
+.brand { margin: 0 0 1.25rem; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font: 600 1.35rem/1.3 ui-serif, Georgia, "Times New Roman", serif; overflow-wrap: anywhere; }
+#page { margin-top: .25rem; font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+.headline { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: 1.75rem; }
+#summary { font: 600 1.7rem/1.25 ui-serif, Georgia, "Times New Roman", serif; }
+.btn { flex: none; padding: .35rem .9rem; font: inherit; font-size: .9rem; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+#summary.hit { color: var(--accent); }
+#tally { margin: .4rem 0 1.75rem; font-size: .9rem; color: var(--muted); }
+
+.host { display: flex; justify-content: space-between; gap: 1rem; margin: 1.6rem 0 .5rem; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.host a { color: var(--accent); text-transform: none; letter-spacing: 0; }
+.sub { margin: .8rem 0 .4rem; font-size: .85rem; font-style: italic; color: var(--muted); }
+
+.post { display: block; margin: 0 0 .6rem; padding: .8rem 1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: inherit; text-decoration: none; }
+.post:hover { border-color: var(--accent); }
+.who { font-weight: 600; }
+.meta { font-size: .85rem; color: var(--muted); }
+.text { margin: .2rem 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+footer { margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
+#notes { margin: 0 0 .75rem; padding-left: 1.1rem; }
+#notes:empty { display: none; }
+#details summary { cursor: pointer; }
+#log { margin: .5rem 0 0; padding: .75rem; max-height: 18rem; overflow: auto; background: var(--wash); border-radius: 8px; white-space: pre-wrap; word-break: break-all; font: 12px/1.4 ui-monospace, monospace; color: var(--text); }
+#settings { display: inline-block; margin-top: .75rem; color: var(--accent); }
+a:focus-visible, summary:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }

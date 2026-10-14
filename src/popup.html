@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pre-check page shares</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div id="page" title=""></div>
+    <div id="summary">Checking…</div>
+    <div id="tally"></div>
+  </header>
+  <main id="results"></main>
+  <footer>
+    <ul id="notes"></ul>
+    <div class="bar">
+      <button type="button" id="details-toggle" class="linklike" aria-expanded="false" aria-controls="log" hidden>Details</button>
+      <button type="button" id="save" class="linklike" title="Download these results as a Markdown (.md) file" hidden>Save</button>
+      <a href="#" id="settings">Settings</a>
+    </div>
+    <pre id="log" hidden></pre>
+  </footer>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

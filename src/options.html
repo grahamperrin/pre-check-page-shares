@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pre-check page shares – Settings</title>
+  <style>
+    :root { color-scheme: light dark; --line: #c7cbd1; --muted: #6b7280; --accent: #7a5200; --error: #c0262d; }
+    @media (prefers-color-scheme: dark) { :root { --line: #3f4652; --muted: #9ca3af; --error: #ff7b82; --accent: #ffd54a; } }
+    body { max-width: 640px; margin: 2rem auto; padding: 0 1rem; font: 15px/1.5 system-ui, sans-serif; }
+    h2 { margin-top: 2rem; font-size: 1.15rem; }
+    .row { position: relative; margin: 0 0 1rem; padding: .9rem 2.6rem .6rem .9rem; border: 1px solid var(--line); border-radius: 8px; display: grid; gap: .6rem; }
+    .row label { display: grid; gap: .2rem; font-size: 13px; font-weight: 600; }
+    .row input, textarea { font: 14px/1.4 ui-monospace, monospace; padding: .4rem .5rem; width: 100%; box-sizing: border-box; }
+    textarea { height: 5rem; }
+    .remove { position: absolute; top: .4rem; right: .4rem; border: 0; background: none; font-size: 1.3rem; line-height: 1; cursor: pointer; color: var(--muted); }
+    .hint { margin: 0; font-size: 12px; color: var(--muted); min-height: 1em; }
+    .hint.error { color: var(--error); font-weight: 600; }
+    .hint a { color: var(--accent); }
+    .src { display: grid; grid-template-columns: auto 1fr; gap: 0 .6rem; margin: 0 0 .9rem; }
+    .src input { margin-top: .35rem; }
+    .src .hint { grid-column: 2; }
+    .field { display: grid; gap: .25rem; max-width: 22rem; margin: 0 0 .4rem; font-size: 14px; font-weight: 600; }
+    .field select { font: 14px/1.4 system-ui, sans-serif; padding: .35rem .4rem; }
+    #status { margin-left: .75rem; }
+    code { font-size: 90%; }
+  </style>
+</head>
+<body>
+  <h1>Settings</h1>
+  <p>Each time you click the toolbar button, the address of the current page is sent to the places switched on here, and nowhere else.</p>
+  <form id="form" novalidate>
+
+    <h2>Mastodon servers</h2>
+    <p class="hint">One server and its access token per row. Mastodon only lets logged-in clients search posts, so without a token a server can only be checked for trending links.</p>
+    <div id="rows"></div>
+    <p><button type="button" id="add">+ Add server</button></p>
+
+    <h2>Lemmy servers</h2>
+    <textarea id="lemmy" spellcheck="false" placeholder="lemmy.world&#10;lemmy.ml"></textarea>
+    <p class="hint" id="lemmy-hint">One server per line, no token needed. Lemmy can search posts by their link. Each server only knows the communities it follows, so a few large ones work best.</p>
+
+    <h2>Other places</h2>
+    <label class="src"><input type="checkbox" id="src-hn"><span>Hacker News</span>
+      <span class="hint">Asks Algolia's public Hacker News search (hn.algolia.com).</span></label>
+    <label class="src"><input type="checkbox" id="src-lobsters"><span>Lobsters</span>
+      <span class="hint">Asks lobste.rs for stories with this link. It's a small volunteer-run site, so the extension only asks when you click.</span></label>
+    <label class="src"><input type="checkbox" id="src-reddit"><span>Reddit</span>
+      <span class="hint">Asks www.reddit.com whether the link has been submitted. This involves your Firefox session's cookies for reddit.com – without these cookies, an HTTP 403 error may be expected.</span></label>
+    <label class="src"><input type="checkbox" id="src-publisher"><span>The page's own Fediverse account</span>
+      <span class="hint">Reads the links on the current page for a Fediverse profile (<code>fediverse:creator</code> tag, <code>rel="me"</code> link, or a profile link such as <code>mastodon.example/@name</code>), then looks through that account's recent public posts on its own server. No token is ever sent to those servers.</span></label>
+
+    <h2>Showing results</h2>
+    <label class="src"><input type="radio" name="resultsIn" id="in-popup" value="popup"><span>In the toolbar popup</span>
+      <span class="hint">The default. Compact, and it closes when you click elsewhere.</span></label>
+    <label class="src"><input type="radio" name="resultsIn" id="in-tab" value="tab"><span>In a new tab</span>
+      <span class="hint">The toolbar button then opens a results page beside the current tab instead of a popup. Reloading that tab checks again. Settings stays reachable from the results page and from about:addons.</span></label>
+    <label class="field">Tab colours
+      <select id="tab-theme">
+        <option value="auto">Match my system (light or dark)</option>
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+      </select>
+    </label>
+    <p class="hint">Only the results tab uses these colours. The popup follows Firefox's own.</p>
+    <label class="src"><input type="checkbox" id="tab-container-on"><span>Open the results tab in a container I choose</span>
+      <span class="hint">By default the results tab opens in the same container as the page you checked. Reddit lookups use the reddit.com cookies of the container the tab runs in, so a fresh or temporary container can get HTTP 403. Pick the container where you are signed in to Reddit, or the default (no container). Ticking this asks for one extra permission, "cookies", which Firefox documents as needed to open a tab in a chosen container.</span></label>
+    <label class="field">Container
+      <select id="tab-container" disabled></select>
+    </label>
+    <p class="hint" id="container-none" hidden>No containers found. Check that Multi-Account Containers, or Firefox's own container tabs feature, is switched on.</p>
+
+    <p><button type="submit">Save</button><span id="status" role="status"></span></p>
+  </form>
+  <template id="row-tpl">
+    <fieldset class="row">
+      <label>Server <input class="host" type="text" placeholder="mastodon.example" autocomplete="off" spellcheck="false"></label>
+      <label>Access token <input class="token" type="password" autocomplete="off" spellcheck="false"></label>
+      <button type="button" class="remove" title="Remove this server" aria-label="Remove this server">×</button>
+      <p class="hint"></p>
+    </fieldset>
+  </template>
+  <h2>Getting a Mastodon token</h2>
+  <p>On your server open <em>Preferences → Development → New application</em>, tick only <code>read:search</code> and <code>read:statuses</code>, save, then copy "Your access token".</p>
+  <p>Tokens are stored locally in this browser (not synced), and are only ever sent to the Mastodon server on the same row.</p>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

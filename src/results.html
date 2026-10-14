@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pre-check page shares</title>
+  <link rel="stylesheet" href="results.css">
+</head>
+<body>
+  <div class="wrap">
+    <p class="brand">pre-check page shares</p>
+    <h1 id="title"></h1>
+    <div id="page"></div>
+    <div class="headline">
+      <div id="summary">Checking…</div>
+      <button type="button" id="save" class="btn" title="Download these results as a Markdown (.md) file" hidden>Save</button>
+    </div>
+    <div id="tally"></div>
+    <section id="results"></section>
+    <footer>
+      <ul id="notes"></ul>
+      <details id="details" hidden>
+        <summary>Details</summary>
+        <pre id="log"></pre>
+      </details>
+      <a href="#" id="settings">Settings</a>
+    </footer>
+  </div>
+  <script type="module" src="results.js"></script>
+</body>
+</html>
