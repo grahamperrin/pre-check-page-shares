@@ -40,6 +40,8 @@ Other options: show results in the popup (default) or a new tab; colours for the
 
 **Save** downloads the results on screen as a Markdown file. In the popup it sits in the middle of the foot, between **Details** and **Settings**. In the results tab it sits to the right of the headline.
 
+The Markdown is written to paste cleanly into both old and new Reddit. Fediverse handles are explicit links (Reddit reads a bare `@user@host` as an email address), and nothing is indented: each post is a bold linked title, one bullet of facts, then a flush-left quote.
+
 ## Privacy
 
 Nothing runs in the background. When you click the toolbar button, the address of the current page is sent to the places you have switched on, and nowhere else.
@@ -92,6 +94,7 @@ The extension has no runtime dependencies. `jsdom` and `web-ext` are development
 - `npm run lint` currently reports two publishing-related items (the extension's name is longer than 45 characters, and `data_collection_permissions` is missing from the manifest). Neither affects loading it temporarily.
 - `npm audit` reports vulnerabilities in `web-ext`'s own dependency tree (the Firefox launcher and the Android deploy helper). They are development-time only and nothing from `node_modules` ships in the extension.
 - The tests use mocked networks and a mocked browser. They check the logic, not the live sites, and not Firefox itself.
+- New Reddit may display the `##` headings in the saved Markdown as level 1. That is accepted for now.
 - The Save button downloads a `data:` URL through an `<a download>` link. That has been tested only in a simulated page.
 
 ## Provenance

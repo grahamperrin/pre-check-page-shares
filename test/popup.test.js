@@ -30,7 +30,7 @@ const ccPost = mkStatus("117333064187264129", LINK);
 
 // ---------- popup, end to end ----------
 let runNo = 0;
-async function run({ store, redditFails = false, searchHasPost = false }) {
+async function run({ store, redditFails = false, searchHasPost = false, searchPosts = null }) {
   const dom = new JSDOM(POPUP);
   const downloads = [];                                       // what "Save" tries to download
   dom.window.HTMLAnchorElement.prototype.click = function () { downloads.push({ href: this.href, download: this.download }); };
@@ -51,7 +51,10 @@ async function run({ store, redditFails = false, searchHasPost = false }) {
     }
     if (u.host === "mastodon.social") {
       if (u.pathname === "/api/v1/timelines/link") return json({}, 404);
-      if (u.pathname === "/api/v2/search") return json({ statuses: searchHasPost && !u.searchParams.get("q").startsWith('"') ? [ccPost] : [] });
+      if (u.pathname === "/api/v2/search") {
+        const phrase = u.searchParams.get("q").startsWith('"');              // the exact-title search
+        return json({ statuses: phrase ? [] : searchPosts ?? (searchHasPost ? [ccPost] : []) });
+      }
       if (u.pathname === "/api/v1/accounts/lookup") return json({ id: "1", username: "creativecommons" });
       if (u.pathname === "/api/v1/accounts/1/statuses") {
         return json(u.searchParams.get("max_id") ? [ccPost] : [mkStatus("3", "<p>unrelated</p>"), mkStatus("2", "<p>also unrelated</p>")]);
@@ -106,12 +109,29 @@ assert.equal(r.downloads.length, 1);
 assert.match(r.downloads[0].download, /^pre-check-a-principled-approach-as-the-sands-shift-.*-\d{4}-\d{2}-\d{2}\.md$/);
 assert.ok(r.downloads[0].href.startsWith("data:text/markdown;charset=utf-8,"));
 const md = decodeURIComponent(r.downloads[0].href.slice(r.downloads[0].href.indexOf(",") + 1));
-const pos = ["## Hacker News", "## Lemmy · lemmy.world", "## Lobsters", "## Mastodon · page's own account @creativecommons@mastodon.social", "## Reddit"].map((h) => md.indexOf(h));
+const pos = ["## Hacker News", "## Lemmy · lemmy.world", "## Lobsters", "## Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)", "## Reddit"].map((h) => md.indexOf(h));
 assert.ok(pos.every((p) => p > 0) && pos.every((p, i) => i === 0 || p > pos[i - 1]));  // every source present, in alphabetical order
 assert.ok(md.includes("- Result: Found 5 posts with this link"));
 assert.ok(md.includes("- Places: Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · Reddit 1"));
 assert.ok(md.includes("](https://news.ycombinator.com/item?id=4242)"));
 assert.ok(!md.includes("TOKEN"));                                                         // the token never reaches the file
+// a local account has no @host in its handle; it is still written as a link, to a profile address rebuilt from the post's
+assert.ok(md.includes("**[Creative Commons](https://mastodon.social/@creativecommons/117333064187264129)**\n\n- [@creativecommons](https://mastodon.social/@creativecommons) · "));
+assert.ok(md.split("\n").every((l) => !/^\s/.test(l)), "no indented bullets or quotes");
+
+// G: issues #2 and #3 end to end. A remote account's post is found by search, then saved in the requested layout.
+const remote = { id: "9", uri: "https://retro-gaiden.com/users/raster/statuses/9", url: "https://retro-gaiden.com/@raster/117446125715303744", created_at: "2026-10-15T09:00:00Z",
+  content: `<p>I also hope this mean NetBSD is going to get better support.</p><p>See <a href="${PAGE}"><span class="invisible">https://</span><span class="ellipsis">creativecommons.org/2026/09/21/a-p</span><span class="invisible">rincipled-approach-as-the-sands-shift/</span></a><br>and more</p>`,
+  account: { acct: "raster@retro-gaiden.com", username: "raster", display_name: "Raster", url: "https://retro-gaiden.com/@raster" }, reblogs_count: 0, favourites_count: 0, replies_count: 1 };
+r = await run({ store, searchPosts: [remote] });
+const rasterCard = [...r.d.querySelectorAll(".post")].find((p) => p.textContent.includes("Raster"));
+assert.ok(rasterCard.textContent.includes("@raster@retro-gaiden.com ·"));                 // on screen: unchanged, plain text
+assert.ok(!rasterCard.textContent.includes("support.See"));                                // paragraphs are no longer glued together
+r.d.getElementById("save").click();
+const md2 = decodeURIComponent(r.downloads[0].href.slice(r.downloads[0].href.indexOf(",") + 1));
+console.log(md2.split("\n").slice(8, 20).join("\n"));
+assert.match(md2, /## Mastodon · mastodon\.social\n\n\*\*\[Raster\]\(https:\/\/retro-gaiden\.com\/@raster\/117446125715303744\)\*\*\n\n- \[@raster@retro-gaiden\.com\]\(https:\/\/retro-gaiden\.com\/@raster\) · [\d./-]+ · ↻ 0 ★ 0 ↩ 1\n\n> I also hope this mean NetBSD is going to get better support\. See https:\/\/creativecommons\.org\/2026\/09\/21\/a-principled-approach-as-the-sands-shift\/ and more\n/);
+assert.ok(md2.split("\n").every((l) => !/^\s/.test(l)));
 
 // B: dedupe. The same post also comes back from the server's own search; it must count once.
 r = await run({ store, searchHasPost: true });

@@ -34,9 +34,15 @@ function postLink(href) {
 const day = (iso) => (iso ? new Date(iso).toLocaleDateString() : "");
 
 // The same facts the renderers show, as plain rows for the Markdown file.
+// The account's profile address: the server says it (account.url); if it ever doesn't, rebuild it from the post's address.
+const profileUrl = (s) => {
+  if (s.account.url) return s.account.url;
+  try { return `${new URL(s.url).origin}/@${s.account.username}`; } catch { return s.url; }
+};
 const rowOfStatus = (s) => ({
   title: s.account.display_name || s.account.username, url: s.url,
-  meta: `@${s.account.acct} · ${day(s.created_at)}`, excerpt: plainText(s.content),
+  handle: { text: `@${s.account.acct}`, url: profileUrl(s) },
+  meta: day(s.created_at), excerpt: plainText(s.content),
   stats: `↻ ${s.reblogs_count}  ★ ${s.favourites_count}  ↩ ${s.replies_count}`,
 });
 const rowOfItem = (it) => ({

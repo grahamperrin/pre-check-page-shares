@@ -89,7 +89,11 @@ export function linksIn(status) {
 }
 
 export function plainText(html) {
-  return new DOMParser().parseFromString(html ?? "", "text/html").body.textContent.trim();
+  const doc = new DOMParser().parseFromString(html ?? "", "text/html");
+  // textContent alone glues paragraphs together ("…support.https://…"), so give line breaks and paragraph ends whitespace.
+  for (const br of doc.querySelectorAll("br")) br.replaceWith(doc.createTextNode("\n"));
+  for (const p of doc.querySelectorAll("p")) p.append(doc.createTextNode("\n\n"));
+  return doc.body.textContent.trim();
 }
 
 async function getJson(url, token, signal, extraHeaders = {}, fetchOpts = {}) {
