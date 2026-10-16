@@ -1,4 +1,5 @@
 import { normalizeHost } from "./lib.js";
+import { buildExport, downloadText, parseImport, settingsFilename } from "./settings-io.js";
 
 const $ = (id) => document.getElementById(id);
 const form = $("form");
@@ -178,4 +179,52 @@ browser.storage.local.get(["instances", "lemmyHosts", "sources", "resultsIn", "t
   $("src-lobsters").checked = s.lobsters;
   $("src-reddit").checked = s.reddit;
   $("src-publisher").checked = s.publisher;
+});
+
+// ---- Export / import ----
+const ioStatus = $("io-status");
+const ioMessage = (text, error = false) => { ioStatus.textContent = text; ioStatus.classList.toggle("error", error); };
+
+$("export").addEventListener("click", async () => {
+  const stored = await browser.storage.local.get(["instances", "lemmyHosts", "sources", "resultsIn", "tabTheme", "tabContainerOn", "tabContainer"]);
+  const includeTokens = $("export-tokens").checked;
+  downloadText(settingsFilename(), buildExport(stored, { includeTokens, version: browser.runtime?.getManifest?.().version ?? "" }));
+  ioMessage(includeTokens ? "Exported, including tokens. Keep that file in secure storage." : "Exported, without tokens.");
+});
+
+$("import").addEventListener("click", () => $("import-file").click());
+
+$("import-file").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  e.target.value = ""; // so choosing the same file again still fires
+  if (!file) return;
+  const { settings, includesTokens, error } = parseImport(await file.text());
+  if (error) { ioMessage(error, true); return; }
+
+  // Servers: keep tokens already typed in for the same host when the file has none.
+  const existing = new Map([...rows.children].map((r) => [normalizeHost(r.querySelector(".host").value), r.querySelector(".token").value]));
+  const hosts = [];
+  let skipped = 0;
+  for (const i of settings.instances) {
+    const host = normalizeHost(i.host);
+    if (!host) { skipped++; continue; }
+    if (hosts.some((h) => h.host === host)) continue;
+    hosts.push({ host, token: i.token || existing.get(host) || "" });
+  }
+  rows.replaceChildren();
+  if (hosts.length) hosts.forEach(addRow); else addRow();
+
+  const lemmy = [...new Set(settings.lemmyHosts.map(normalizeHost).filter(Boolean))];
+  skipped += settings.lemmyHosts.length - lemmy.length;
+  $("lemmy").value = lemmy.join("\n");
+
+  const s = { ...DEFAULT_SOURCES, ...settings.sources };
+  $("src-hn").checked = s.hn; $("src-lobsters").checked = s.lobsters; $("src-reddit").checked = s.reddit; $("src-publisher").checked = s.publisher;
+  $("in-tab").checked = settings.resultsIn === "tab"; $("in-popup").checked = settings.resultsIn !== "tab";
+  $("tab-theme").value = settings.tabTheme;
+  $("tab-container-on").checked = settings.tabContainerOn;
+  $("tab-container").disabled = !settings.tabContainerOn;
+  if (settings.tabContainerOn) await fillContainers(settings.tabContainer); // falls back to "Default" if that container doesn't exist here
+
+  ioMessage(`Imported into the form${includesTokens ? "" : " (the file has no tokens, so any you had typed in were kept)"}${skipped ? `; ${skipped} invalid entr${skipped === 1 ? "y was" : "ies were"} skipped` : ""}. Review it, then press Save.`);
 });

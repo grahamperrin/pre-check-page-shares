@@ -12,14 +12,17 @@ browser.runtime.onStartup.addListener(applyMode);
 browser.runtime.onInstalled.addListener(applyMode);
 browser.storage.onChanged.addListener((changes, area) => { if (area === "local" && changes.resultsIn) applyMode(); });
 
-// Tab mode: the click is the only moment the extension may look at the page (activeTab), so read it now,
-// then open the results page with what it needs in its address.
-browser.action.onClicked.addListener(async (tab) => {
+// Opens the results page for a tab, next to it. Used by the toolbar click (tab mode) and by the popup's
+// "Check again in a results tab" button. `candidates` (Fediverse profiles found on the page) may already be known.
+async function openResults(tab, candidates) {
   const { sources, tabContainerOn, tabContainer } = await browser.storage.local.get(["sources", "tabContainerOn", "tabContainer"]);
-  let candidates = [];
-  if ((sources?.publisher ?? true) && tab.id != null && /^https?:/.test(tab.url ?? "")) {
-    try { candidates = pickCandidates((await browser.scripting.executeScript({ target: { tabId: tab.id }, func: scanPage }))[0]?.result ?? []); }
-    catch { /* restricted pages can't be scanned */ }
+  if (!candidates) {
+    candidates = [];
+    // The click is the only moment the extension may look at the page (activeTab), so read it now.
+    if ((sources?.publisher ?? true) && tab.id != null && /^https?:/.test(tab.url ?? "")) {
+      try { candidates = pickCandidates((await browser.scripting.executeScript({ target: { tabId: tab.id }, func: scanPage }))[0]?.result ?? []); }
+      catch { /* restricted pages can't be scanned */ }
+    }
   }
   const params = new URLSearchParams({ url: tab.url ?? "", title: tab.title ?? "", c: JSON.stringify(candidates) });
   const create = { url: `${browser.runtime.getURL("results.html")}?${params}`, index: tab.index + 1, openerTabId: tab.id };
@@ -35,4 +38,15 @@ browser.action.onClicked.addListener(async (tab) => {
     delete create.cookieStoreId; // e.g. the chosen container was deleted: fall back to the normal behaviour
     await browser.tabs.create(create);
   }
+}
+
+// Tab mode: the toolbar button has no popup, so a click arrives here.
+browser.action.onClicked.addListener((tab) => openResults(tab));
+
+// The popup runs outside any container, so it can't use Reddit cookies that live in one. It asks for the
+// same check in a results tab instead, which can open in the container chosen in Settings.
+browser.runtime.onMessage.addListener((msg, sender) => {
+  if (msg?.type !== "open-results-tab" || sender.id !== browser.runtime.id) return;
+  const t = msg.tab ?? {};
+  return openResults({ id: t.id, index: t.index ?? 0, url: t.url, title: t.title, incognito: t.incognito }, Array.isArray(msg.candidates) ? msg.candidates : undefined);
 });

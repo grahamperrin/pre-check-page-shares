@@ -72,7 +72,7 @@ function renderItem(it) { // Hacker News / Lemmy / Lobsters / Reddit
 // Shared by the toolbar popup and the results page. Both use the same element ids.
 //   url, title: the page being checked
 //   scan():     async, returns raw Fediverse-profile candidates from that page (or [])
-async function main({ url, title, scan }) {
+async function main({ url, title, scan, openInTab }) {
   if (!url || !/^https?:/.test(url)) { $("summary").textContent = "Open a web page first."; return; }
   $("page").textContent = url;
   $("page").title = url;
@@ -187,9 +187,16 @@ async function main({ url, title, scan }) {
   if (tally.some((x) => x.includes("✕"))) $("notes").append(el("li", null, "✕ means every request to that source failed. See Details."));
   if (reddit?.forbidden) {
     const inTab = location.pathname.endsWith("/results.html");
-    $("notes").append(el("li", null, inTab
+    const li = el("li", null, inTab
       ? "Reddit answered HTTP 403 (forbidden). In this tab the lookup uses the reddit.com cookies of the container the tab is open in. Settings can open the results tab in a container you choose."
-      : "Reddit answered HTTP 403 (forbidden). This lookup uses your Firefox session's cookies for reddit.com."));
+      : "Reddit answered HTTP 403 (forbidden). The popup doesn't run in a container, so it can't use reddit.com cookies that you have only inside one. ");
+    if (!inTab && openInTab) {
+      const b = el("button", "linklike", "Check again in a results tab");
+      b.type = "button";
+      b.addEventListener("click", () => openInTab(candidates));
+      li.append(b);
+    }
+    $("notes").append(li);
   }
 
   // ---- headline ----

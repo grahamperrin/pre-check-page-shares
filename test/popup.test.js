@@ -32,7 +32,10 @@ const ccPost = mkStatus("117333064187264129", LINK);
 let runNo = 0;
 async function run({ store, redditFails = false, searchHasPost = false, searchPosts = null }) {
   const dom = new JSDOM(POPUP);
-  const downloads = [];                                       // what "Save" tries to download
+  const downloads = [];
+  const messages = [];
+  dom.window.close = () => { closed.push(true); };
+  const closed = [];                                       // what "Save" tries to download
   dom.window.HTMLAnchorElement.prototype.click = function () { downloads.push({ href: this.href, download: this.download }); };
   const requests = [];
   Object.assign(globalThis, { document: dom.window.document, window: dom.window, location: dom.window.location, DOMParser: dom.window.DOMParser });
@@ -67,13 +70,13 @@ async function run({ store, redditFails = false, searchHasPost = false, searchPo
     scripting: { executeScript: async () => [{ result: [{ acct: "creativecommons@mastodon.social", via: "profile link" }, { acct: "someone@medium.com", via: "profile link" }] }] },
     storage: { local: { get: async () => store } },
     permissions: { contains: async () => true },
-    runtime: { openOptionsPage() {} },
+    runtime: { openOptionsPage() {}, sendMessage: async (m) => { messages.push(m); } },
   };
   await import(`../src/popup.js?run=${++runNo}`);
   for (let i = 0; i < 100 && dom.window.document.getElementById("summary").textContent === "Checking…"; i++) await new Promise((r) => setTimeout(r, 20));
   const d = dom.window.document;
   return {
-    d, requests, downloads, summary: d.getElementById("summary").textContent, tally: d.getElementById("tally").textContent,
+    d, requests, downloads, messages, closed, summary: d.getElementById("summary").textContent, tally: d.getElementById("tally").textContent,
     headers: [...d.querySelectorAll(".host span")].map((x) => x.textContent), notes: [...d.querySelectorAll("#notes li")].map((x) => x.textContent),
     log: d.getElementById("log").textContent,
   };
@@ -144,6 +147,16 @@ assert.equal(r.tally, "Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · R
 assert.equal(r.summary, "Found 4 posts with this link");
 assert.ok(r.notes.some((n) => n.startsWith("✕ means")));
 assert.ok(r.notes.some((n) => n.startsWith("Reddit answered HTTP 403 (forbidden)")));
+// issue #6: the popup (outside containers) offers the same check in a results tab, and passes what it already found
+const redditNote = [...r.d.querySelectorAll("#notes li")].find((li) => li.textContent.startsWith("Reddit answered HTTP 403"));
+assert.match(redditNote.textContent, /doesn't run in a container/);
+const tabBtn = redditNote.querySelector("button");
+assert.equal(tabBtn.textContent, "Check again in a results tab");
+tabBtn.click(); await new Promise((r2) => setTimeout(r2, 10));
+assert.equal(r.messages.length, 1);
+assert.equal(r.messages[0].type, "open-results-tab");
+assert.equal(r.messages[0].tab.url, PAGE);
+assert.deepEqual(r.messages[0].candidates.map((c) => c.acct), ["creativecommons@mastodon.social"]);
 
 // D: nothing configured except defaults, no token: honest message, no pretence of a clean result.
 r = await run({ store: { instances: [{ host: "mastodon.social", token: "" }], sources: { hn: false, lobsters: false, reddit: false, publisher: false } } });

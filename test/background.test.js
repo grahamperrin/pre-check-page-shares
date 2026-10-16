@@ -11,7 +11,7 @@ globalThis.browser = {
     onChanged: { addListener: (f) => (listeners.changed = f) },
   },
   action: { setPopup: async (o) => calls.setPopup.push(o.popup), onClicked: { addListener: (f) => (listeners.clicked = f) } },
-  runtime: { getURL: (p) => `moz-extension://abc/${p}`, onStartup: { addListener() {} }, onInstalled: { addListener() {} } },
+  runtime: { id: "me@x", onMessage: { addListener: (f) => (listeners.message = f) }, getURL: (p) => `moz-extension://abc/${p}`, onStartup: { addListener() {} }, onInstalled: { addListener() {} } },
   scripting: { executeScript: async () => { calls.exec++; return [{ result: [{ acct: "creativecommons@mastodon.social", via: "profile link" }, { acct: "x@medium.com", via: "profile link" }] }]; } },
   tabs: { create: async (o) => { if (calls.failContainer && o.cookieStoreId) throw new Error("No permission for cookieStoreId"); calls.created.push(o); } },
 };
@@ -91,4 +91,24 @@ await listeners.clicked(tabInfo);
 assert.equal(calls.created.length, before + 1);
 assert.equal(last().cookieStoreId, undefined);
 assert.ok(last().url.startsWith("moz-extension://abc/results.html?"));
+
+// ---- issue #6: the popup asks for the check in a results tab (it can't use a container's Reddit cookies) ----
+store.local.tabContainerOn = true; store.local.tabContainer = "firefox-container-3"; calls.failContainer = false; store.local.sources = {};
+const execBefore = calls.exec, nBefore = calls.created.length;
+const popupTab = { id: 30, index: 5, url: "https://www.theregister.com/x/", title: "The Register", incognito: false };
+await listeners.message({ type: "open-results-tab", tab: popupTab, candidates: [{ acct: "a@b.example", via: "rel=me" }] }, { id: "me@x" });
+assert.equal(calls.created.length, nBefore + 1);
+let m = calls.created.at(-1), mu = new URL(m.url);
+assert.equal(m.cookieStoreId, "firefox-container-3");                      // opens in the container chosen in Settings
+assert.equal(m.index, 6); assert.equal(m.openerTabId, 30);
+assert.equal(mu.searchParams.get("url"), "https://www.theregister.com/x/");
+assert.deepEqual(JSON.parse(mu.searchParams.get("c")), [{ acct: "a@b.example", via: "rel=me" }]);
+assert.equal(calls.exec, execBefore);                                      // candidates came from the popup: the page is not read again
+// without candidates the page is scanned; messages from elsewhere or of other types are ignored
+await listeners.message({ type: "open-results-tab", tab: popupTab }, { id: "me@x" });
+assert.equal(calls.created.length, nBefore + 2);
+const ignored = calls.created.length;
+await listeners.message({ type: "open-results-tab", tab: popupTab }, { id: "someone-else" });
+await listeners.message({ type: "other" }, { id: "me@x" });
+assert.equal(calls.created.length, ignored);
 console.log("background tests passed");

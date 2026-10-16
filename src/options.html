@@ -23,6 +23,9 @@
     .field { display: grid; gap: .25rem; max-width: 22rem; margin: 0 0 .4rem; font-size: 14px; font-weight: 600; }
     .field select { font: 14px/1.4 system-ui, sans-serif; padding: .35rem .4rem; }
     #status { margin-left: .75rem; }
+    .io-row { display: flex; align-items: center; gap: 1rem; margin: 0 0 .4rem; }
+    .check { font-size: 14px; }
+    #io-status.error { color: var(--error); font-weight: 600; }
     code { font-size: 90%; }
   </style>
 </head>
@@ -71,6 +74,18 @@
     <p class="hint" id="container-none" hidden>No containers found. Check that Multi-Account Containers, or Firefox's own container tabs feature, is switched on.</p>
 
     <p><button type="submit">Save</button><span id="status" role="status"></span></p>
+
+    <h2>Export and import</h2>
+    <div class="io-row">
+      <button type="button" id="export">Export settings</button>
+      <label class="check"><input type="checkbox" id="export-tokens"> Include Mastodon server tokens</label>
+    </div>
+    <p class="hint">Exports the settings as last saved. Tokens give access to your Mastodon accounts, so if you include them, keep the file in secure storage (a password manager or an encrypted volume) and delete copies you no longer need.</p>
+    <div class="io-row">
+      <button type="button" id="import">Import settings</button>
+    </div>
+    <p class="hint" id="io-status" role="status">Importing fills in the form above so you can review it. Nothing changes until you press Save.</p>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
   </form>
   <template id="row-tpl">
     <fieldset class="row">
