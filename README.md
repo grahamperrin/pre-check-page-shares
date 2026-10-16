@@ -12,7 +12,11 @@ One click on the toolbar button checks the current page against:
 
 Results appear in the toolbar popup or in a new tab, and can be saved as a Markdown file.
 
-> **Status: early, unpublished and AI-assisted.** It works for its author in Firefox, but it has not had an independent code review. See [Provenance](#provenance).
+### Status
+
+Not published at [AMO](https://addons.mozilla.org/).
+
+It has not had an independent code review. See [Provenance](#provenance).
 
 ## Try it
 
