@@ -22,12 +22,12 @@ It has not had an independent code review. See [Provenance](#provenance).
 
 Requires Firefox 128 or newer.
 
-1. Open `about:debugging#/runtime/this-firefox` and choose **Load Temporary Add-on…**.
-2. Select `src/manifest.json` from a clone of this repository, or the zip produced by `npm run build`.
+1. Download the `.zip` from the [latest release](https://github.com/grahamperrin/pre-check-page-shares/releases/latest). Don't unzip it.
+2. In Firefox, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and select the `.zip`.
 3. Open the extension's settings page and switch on the places you want to check (see below).
 4. Visit a page and click the toolbar button.
 
-A temporary add-on disappears when Firefox restarts.
+A temporary add-on disappears when Firefox restarts. To run from source instead, select `src/manifest.json` from a clone of this repository, or the zip made by `npm run build`.
 
 ## Settings
 
