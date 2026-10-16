@@ -99,9 +99,12 @@ The extension has no runtime dependencies. `jsdom` and `web-ext` are development
 
 ## Provenance
 
-This extension was written by an AI assistant (Claude, from Anthropic) in a long conversation with its author, Graham Perrin, who directed the design, ran it in Firefox and reported what happened. Several behaviours exist because real testing contradicted the first design: Reddit needing cookies, and the results tab inheriting the checked page's container.
+This extension was vibe-coded by an AI assistant – Anthropic Claude: 
 
-Treat it as the work of a very fast junior developer. Read before you trust.
+- mostly Sonnet 5.5 (a mixture of medium and extra efforts)
+- for one of the more recent prompts, I switched down to Haiku 4.5. 
+
+In addition to prompting Claude: I ran various tests in Firefox, based on experience with Reddit. Some of the tests were to compensate for understandable restrictions by Reddit. 
 
 ## Acknowledgements
 
