@@ -108,8 +108,12 @@ In addition to prompting Claude: I ran various tests in Firefox, based on experi
 
 ## Acknowledgements
 
-- [ReadIt](https://addons.mozilla.org/addon/readit-read-it-on-reddit/) (MIT licensed): its approach of probing several spellings of a URL against Reddit's `info.json`, then matching strictly, was learned by reading its code. No code was copied.
-- [Newsit](https://github.com/benwinding/newsit) by Ben Winding, which does this for Hacker News, Lemmy and Reddit, and prompted the question of how to support Lobsters.
+[ReadIt](https://addons.mozilla.org/addon/readit-read-it-on-reddit/) (MIT licensed): its approach of probing several spellings of a URL against Reddit's `info.json`, then matching strictly, was learned by reading its code. No code was copied.
+
+[Newsit](https://newsit.benwinding.com/) by Ben Winding, which works with Hacker News and Reddit, and prompted the question of how to support Lobsters. Newsit is, distinctively:
+
+- more capable with Hacker News and Reddit – it has the option to post
+- not limited to Firefox.
 
 ## Licence
 
