@@ -18,6 +18,8 @@ Not published at [AMO](https://addons.mozilla.org/).
 
 It has not had an independent code review. See [Provenance](#provenance).
 
+X – `https://x.com/` – is out of scope.
+
 ## Try it
 
 Requires Firefox 128 or newer.
