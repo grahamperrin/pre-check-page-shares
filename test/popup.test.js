@@ -112,7 +112,7 @@ assert.equal(r.downloads.length, 1);
 assert.match(r.downloads[0].download, /^pre-check-a-principled-approach-as-the-sands-shift-.*-\d{4}-\d{2}-\d{2}\.md$/);
 assert.ok(r.downloads[0].href.startsWith("data:text/markdown;charset=utf-8,"));
 const md = decodeURIComponent(r.downloads[0].href.slice(r.downloads[0].href.indexOf(",") + 1));
-const pos = ["## Hacker News", "## Lemmy · lemmy.world", "## Lobsters", "## Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)", "## Reddit"].map((h) => md.indexOf(h));
+const pos = ["### Hacker News", "### Lemmy · lemmy.world", "### Lobsters", "### Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)", "### Reddit"].map((h) => md.indexOf(h));
 assert.ok(pos.every((p) => p > 0) && pos.every((p, i) => i === 0 || p > pos[i - 1]));  // every source present, in alphabetical order
 assert.ok(md.includes("- Result: Found 5 posts with this link"));
 assert.ok(md.includes("- Places: Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · Reddit 1"));
@@ -133,7 +133,7 @@ assert.ok(!rasterCard.textContent.includes("support.See"));                     
 r.d.getElementById("save").click();
 const md2 = decodeURIComponent(r.downloads[0].href.slice(r.downloads[0].href.indexOf(",") + 1));
 console.log(md2.split("\n").slice(8, 20).join("\n"));
-assert.match(md2, /## Mastodon · mastodon\.social\n\n\*\*\[Raster\]\(https:\/\/retro-gaiden\.com\/@raster\/117446125715303744\)\*\*\n\n- \[@raster@retro-gaiden\.com\]\(https:\/\/retro-gaiden\.com\/@raster\) · [\d./-]+ · ↻ 0 ★ 0 ↩ 1\n\n> I also hope this mean NetBSD is going to get better support\. See https:\/\/creativecommons\.org\/2026\/09\/21\/a-principled-approach-as-the-sands-shift\/ and more\n/);
+assert.match(md2, /### Mastodon · mastodon\.social\n\n\*\*\[Raster\]\(https:\/\/retro-gaiden\.com\/@raster\/117446125715303744\)\*\*\n\n- \[@raster@retro-gaiden\.com\]\(https:\/\/retro-gaiden\.com\/@raster\) · [\d./-]+ · ↻ 0 ★ 0 ↩ 1\n\n> I also hope this mean NetBSD is going to get better support\. See https:\/\/creativecommons\.org\/2026\/09\/21\/a-principled-approach-as-the-sands-shift\/ and more\n/);
 assert.ok(md2.split("\n").every((l) => !/^\s/.test(l)));
 
 // B: dedupe. The same post also comes back from the server's own search; it must count once.

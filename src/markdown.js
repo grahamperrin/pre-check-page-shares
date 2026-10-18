@@ -6,7 +6,8 @@
 //  - Nothing is indented. Indented quotes under bullet points don't render reliably in both versions of Reddit,
 //    so each post is: a bold linked title, one bullet of facts, then a flush-left quote.
 //  - Every block is separated by a blank line.
-// (New Reddit may show "##" headings as level 1. That is accepted.)
+// Headings start at level 2 (title) and level 3 (sections), because a level 1 heading is excessive where this Markdown is
+// usually pasted. (New Reddit may show "###" headings as level 1. That is accepted.)
 
 const pad = (n) => String(n).padStart(2, "0");
 export const localDay = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -51,14 +52,14 @@ function truncate(s, max = 500) {
 export function buildMarkdown(result) {
   const { url, title, checkedAt, summary, tally, sections = [], notes = [], generator } = result;
   const out = [];
-  out.push(`# Pre-check: ${esc(title || url)}`, "");
+  out.push(`## Pre-check: ${esc(title || url)}`, "");
   out.push(`- Page: <${href(url)}>`);
   out.push(`- Checked: ${checkedAt instanceof Date ? localStamp(checkedAt) : esc(checkedAt)}`);
   if (summary) out.push(`- Result: ${esc(summary)}`);
   if (tally) out.push(`- Places: ${esc(tally)}`);
 
   for (const section of sections) {
-    out.push("", `## ${text(section.title)}`);
+    out.push("", `### ${text(section.title)}`);
     for (const r of section.rows) {
       out.push("", `**[${esc(r.title || r.url)}](${href(r.url)})**`);
       const facts = [
@@ -71,7 +72,7 @@ export function buildMarkdown(result) {
     }
   }
   if (notes.length) {
-    out.push("", "## Notes", "");
+    out.push("", "### Notes", "");
     for (const n of notes) out.push(`- ${text(n)}`);
   }
   out.push("", `_Saved by ${generator || "pre-check page shares"}._`, "");

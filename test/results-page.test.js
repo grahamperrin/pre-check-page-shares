@@ -55,7 +55,7 @@ d.getElementById("save").click();
 assert.equal(downloads.length, 1);
 assert.ok(downloads[0].download.startsWith("pre-check-a-principled-approach-as-the-sands-shift-") && downloads[0].download.endsWith(".md"));
 const md = decodeURIComponent(downloads[0].href.slice(downloads[0].href.indexOf(",") + 1));
-assert.ok(md.includes("## Hacker News") && md.includes("## Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)"));
+assert.ok(md.includes("### Hacker News") && md.includes("### Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)"));
 assert.ok(md.includes("- Result: Found 2 posts with this link"));
 
 // 2. theme "auto" (the default): no data-theme attribute, so CSS follows the system

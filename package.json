@@ -1,6 +1,6 @@
 {
   "name": "pre-check-page-shares",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Firefox extension: before you post a link, check whether the page has already been shared on Hacker News, Lemmy, Lobsters, Mastodon or Reddit.",
   "private": true,
   "type": "module",

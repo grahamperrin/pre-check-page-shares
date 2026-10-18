@@ -12,7 +12,7 @@ const raster = {
   excerpt: "I also hope this mean NetBSD is going to get better support for the linux compatibility subsystem, that would help greatly to get running software that doesn't get ported, and hardware support. https://www.theregister.com/os-platforms/2026/10/13/netbsd-may-have-found-a-new-role-th",
 };
 const reported = buildMarkdown({ url: "https://example.com/", title: "x", checkedAt: when, sections: [{ title: "Mastodon · beige.party", rows: [raster] }] });
-assert.ok(reported.includes(`## Mastodon · beige.party
+assert.ok(reported.includes(`### Mastodon · beige.party
 
 **[Raster](https://retro-gaiden.com/@raster/117446125715303744)**
 
@@ -37,8 +37,8 @@ const md = buildMarkdown({
 });
 console.log(md);
 const at = (s) => md.indexOf(s);
-assert.ok(md.startsWith("# Pre-check: "));
-assert.ok(at("## Hacker News") > 0 && at("## Hacker News") < at("## Mastodon") && at("## Mastodon") < at("## Notes"));
+assert.ok(md.startsWith("## Pre-check: "));
+assert.ok(at("### Hacker News") > 0 && at("### Hacker News") < at("### Mastodon") && at("### Mastodon") < at("### Notes"));
 assert.ok(md.includes("- Checked: 2026-10-14 08:05"));
 assert.ok(md.includes("- Result: Found 2 posts with this link"));
 assert.ok(md.includes("- Places: Hacker News 1 · Mastodon 1"));
@@ -54,12 +54,12 @@ assert.ok(md.includes("**[Creative Commons](https://mastodon.social/@cc/1)**\n\n
 // Issue #2: no bare Fediverse handle survives anywhere; each one is written as an explicit link
 const withoutLinks = md.replace(/\[[^\]]*(?:\\\][^\]]*)*\]\([^)]*\)/g, "");
 assert.ok(!/@[\w.-]+@[\w.-]+\.[a-z]{2,}/i.test(withoutLinks), withoutLinks);
-assert.ok(md.includes("## Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)"));   // heading
+assert.ok(md.includes("### Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)"));   // heading
 assert.ok(md.includes("thanks [@raster@retro-gaiden.com](https://retro-gaiden.com/@raster) and mail me@example.com"));                    // excerpt; a plain email is left alone
 assert.ok(md.includes("- Also checked the page's own account: [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons), [@a\\_b@host.example](https://host.example/@a_b)"));   // notes
 
 // other people's text can't inject Markdown or HTML
-assert.ok(md.includes("# Pre-check: Title with \\[brackets\\], \\*stars\\*, \\_under\\_, \\`ticks\\`, \\<tags\\> and a \\| pipe and a line break"));
+assert.ok(md.includes("## Pre-check: Title with \\[brackets\\], \\*stars\\*, \\_under\\_, \\`ticks\\`, \\<tags\\> and a \\| pipe and a line break"));
 assert.ok(md.includes("**[Evil \\[x\\](http://bad) title](https://news.ycombinator.com/item?id=1)**"));   // brackets escaped: no second link
 assert.ok(!md.includes("<tags>") && !md.includes("<2>"));
 assert.ok(md.includes("- Page: <https://example.com/a%20%28b%29/c%20d?x=1&y=%3C2%3E>"));
@@ -80,12 +80,12 @@ assert.ok(!quote.includes("https://example.com/segment"), quote);
 
 // ---- a row with nothing but a title and link ----
 const bare = buildMarkdown({ url: "https://x.test/", title: "t", checkedAt: when, sections: [{ title: "S", rows: [{ title: "", url: "https://x.test/1" }] }] });
-assert.ok(bare.includes("## S\n\n**[https://x.test/1](https://x.test/1)**\n\n_Saved by"), bare);   // no empty bullet, no empty quote
+assert.ok(bare.includes("### S\n\n**[https://x.test/1](https://x.test/1)**\n\n_Saved by"), bare);   // no empty bullet, no empty quote
 
 // ---- nothing found: still a valid, useful record ----
 const empty = buildMarkdown({ url: "https://example.com/", title: "", checkedAt: when, summary: "No matches found", tally: "Hacker News 0", sections: [], notes: [] });
-assert.ok(empty.startsWith("# Pre-check: https://example.com/"));
-assert.ok(!empty.includes("## ") && !empty.includes("Notes"));
+assert.ok(empty.startsWith("## Pre-check: https://example.com/"));
+assert.ok(!empty.includes("### ") && !empty.includes("Notes"));
 assert.ok(empty.includes("_Saved by pre-check page shares._"));
 
 // ---- filenames ----

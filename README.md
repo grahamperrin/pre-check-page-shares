@@ -103,7 +103,7 @@ The extension has no runtime dependencies. `jsdom` and `web-ext` are development
 - `npm audit` reports vulnerabilities in `web-ext`'s own dependency tree (the Firefox launcher and the Android deploy helper). They are development-time only and nothing from `node_modules` ships in the extension.
 - The tests use mocked networks and a mocked browser. They check the logic, not the live sites, and not Firefox itself.
 - Reddit needs your `reddit.com` cookies, and the toolbar popup runs outside any container. If you're signed in to Reddit only inside a container, use the results tab with that container chosen in Settings. When the popup gets an HTTP 403 from Reddit it offers a button that repeats the check in a results tab.
-- New Reddit may display the `##` headings in the saved Markdown as level 1. That is accepted for now.
+- The saved Markdown starts at a level 2 heading (the title), with level 3 headings for each place, because level 1 is excessive where it is usually pasted. New Reddit may display these headings larger than expected. That is accepted for now.
 - The Save button downloads a `data:` URL through an `<a download>` link. That has been tested only in a simulated page.
 
 ## Provenance

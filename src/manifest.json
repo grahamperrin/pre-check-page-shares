@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "pre-check page shares – Reddit, Mastodon and more",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Before you post a link, check whether the page has already been shared on Reddit, Mastodon, Hacker News, Lemmy or Lobsters.",
   "browser_specific_settings": {
     "gecko": {
