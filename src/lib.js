@@ -5,7 +5,9 @@ const TRACKING = /^(utm_[a-z]+|fbclid|gclid|dclid|msclkid|yclid|mc_cid|mc_eid|ig
 export function cleanUrl(input) {
   const u = new URL(input);
   u.hash = "";
-  for (const k of [...u.searchParams.keys()]) if (TRACKING.test(k)) u.searchParams.delete(k);
+  // X's "share" links append ?s=20 or ?t=…&s=19, which say who shared it, not what it is. Only on X/Twitter hosts: "s" and "t" mean something elsewhere.
+  const onX = TWITTER_HOST.test(u.hostname.toLowerCase());
+  for (const k of [...u.searchParams.keys()]) if (TRACKING.test(k) || (onX && /^[st]$/.test(k))) u.searchParams.delete(k);
   return u;
 }
 
@@ -69,15 +71,14 @@ export function urlQueries(input) {
     const rest = (u.pathname.replace(/\/+$/, "") + u.search).replace(/:/g, " ");
     const host = u.hostname.toLowerCase(); // hostname: no port, so no stray colon
     const bare = host.replace(/^www\./, "");
+    // The same page may have been posted under its sibling domain (x.com ↔ twitter.com). The sibling comes
+    // before the "www." spellings so it survives callers that take only the first few queries (Hacker News takes 3).
+    const alias = SITE_ALIASES[bare];
     out.add(host + rest);
     out.add(bare + rest);
+    if (alias) out.add(alias + rest);
     out.add("www." + bare + rest);
-    // The same page may have been posted under its sibling domain (x.com ↔ twitter.com).
-    const alias = SITE_ALIASES[bare];
-    if (alias) {
-      out.add(alias + rest);
-      out.add("www." + alias + rest);
-    }
+    if (alias) out.add("www." + alias + rest);
   }
   return [...out].slice(0, 4);
 }

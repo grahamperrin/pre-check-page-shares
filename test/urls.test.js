@@ -34,3 +34,10 @@ assert.ok(xq.includes("twitter.com/karpathy/status/2109361546505966046"), "searc
 assert.ok(urlQueries("https://twitter.com/a/status/1").includes("x.com/a/status/1"));
 assert.ok(urlQueries("https://example.com/a").every((x) => !x.includes("twitter.com")));
 console.log("x/twitter asserts passed");
+
+// X share links add ?s=20 / ?t=…&s=19; that is noise on X/Twitter only.
+assert.equal(k("https://x.com/karpathy/status/2109361546505966046?s=20"), k(xPage));
+assert.equal(k("https://twitter.com/karpathy/status/2109361546505966046?t=abc&s=19"), k(xPage));
+assert.notEqual(k("https://example.com/a?s=20"), k("https://example.com/a"));
+assert.notEqual(k("https://example.com/a?t=1"), k("https://example.com/a"));
+console.log("x share-param asserts passed");
