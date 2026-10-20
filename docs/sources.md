@@ -2,7 +2,7 @@
 
 What the extension asks each site, why it asks it that way, and how far each claim has been verified. "Verified" means the author saw it work in Firefox; "read from source" means it was taken from the other project's published code and has not been independently exercised.
 
-Every source goes through the same final step: results are compared with the page's address using `linkKey()` in `src/lib.js`, which ignores the scheme, `www.`, a trailing slash, the fragment, tracking parameters (`utm_*`, `fbclid`, and so on) and parameter order. Lobsters is the exception: its server does its own URL normalisation, so its answer is used as returned.
+Every source goes through the same final step: results are compared with the page's address using `linkKey()` in `src/lib.js`, which ignores the scheme, `www.`, a trailing slash, the fragment, tracking parameters (`utm_*`, `fbclid`, and so on) and parameter order. It also treats `x.com` and `twitter.com` (including `www.` and `mobile.`) as the same site, because posts link to either spelling. The text-search queries (Hacker News, Mastodon) try both spellings too. Lobsters is the exception: its server does its own URL normalisation, so its answer is used as returned.
 
 ## Hacker News
 

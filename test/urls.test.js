@@ -20,3 +20,17 @@ console.log(titleQuery("Congress Has Another Site-Blocking Bill, And This One Ta
 console.log(titleQuery('Foo: "bar" baz - Site'));
 assert.equal(titleQuery("Home"), null);
 console.log("all asserts passed");
+
+// Issue #8: x.com and twitter.com are the same site. A Mastodon bot post linked twitter.com/... for a page opened as x.com/...
+const xPage = "https://x.com/karpathy/status/2109361546505966046";
+assert.equal(k(xPage), k("https://twitter.com/karpathy/status/2109361546505966046"));
+assert.equal(k(xPage), k("https://www.twitter.com/karpathy/status/2109361546505966046/"));
+assert.equal(k(xPage), k("https://mobile.twitter.com/karpathy/status/2109361546505966046"));
+assert.notEqual(k(xPage), k("https://x.com/karpathy/status/1"));
+assert.notEqual(k("https://example.com/a"), k("https://twitter.com/a"));
+const xq = urlQueries(xPage);
+assert.ok(xq.includes("x.com/karpathy/status/2109361546505966046"));
+assert.ok(xq.includes("twitter.com/karpathy/status/2109361546505966046"), "search must also try the twitter.com spelling");
+assert.ok(urlQueries("https://twitter.com/a/status/1").includes("x.com/a/status/1"));
+assert.ok(urlQueries("https://example.com/a").every((x) => !x.includes("twitter.com")));
+console.log("x/twitter asserts passed");
