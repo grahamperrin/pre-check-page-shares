@@ -65,3 +65,18 @@ const r4 = await checkInstance({ host: "mastodon.social", token: "T" }, { url: c
 assert.deepEqual(r4.statuses.map((s) => s.id), [4]);
 assert.deepEqual(r4.titleStatuses.map((s) => s.id), [3]);   // unrelated title-only hit stays in the secondary list
 console.log("regression passed");
+
+// Issue #8: page is x.com/..., the Mastodon post links twitter.com/... and only a twitter.com search finds it.
+{
+  const xPage = "https://x.com/karpathy/status/2109361546505966046";
+  const bot = post(5, '<p>Karpathy on X <a href="https://twitter.com/karpathy/status/2109361546505966046"><span class="invisible">https://</span><span class="ellipsis">twitter.com/karpathy/status/21</span><span class="invisible">09361546505966046</span></a></p>');
+  globalThis.fetch = async (url) => {
+    const u = new URL(url); const q = u.searchParams.get("q");
+    const json = (b, status = 200) => ({ ok: status < 400, status, json: async () => b });
+    if (u.pathname === "/api/v1/timelines/link") return json({}, 404);
+    return json({ statuses: q.startsWith("twitter.com/karpathy") ? [bot] : [] });
+  };
+  const rx = await checkInstance({ host: "mastodon.social", token: "TOKEN" }, { url: xPage, title: "x" });
+  assert.deepEqual(rx.statuses.map((s) => s.id), [5]);
+  console.log("issue #8 e2e passed");
+}

@@ -18,10 +18,19 @@ export function linkKey(input) {
       .map(([k, v]) => `${k}=${v}`)
       .join("&");
     const path = u.pathname.replace(/\/+$/, "");
-    return `${u.hostname.toLowerCase().replace(/^www\./, "")}${path}${params ? "?" + params : ""}`;
+    return `${canonicalHost(u.hostname)}${path}${params ? "?" + params : ""}`;
   } catch {
     return null;
   }
+}
+
+// X is the same site as Twitter, and old posts (and bots that still write "twitter.com") link to either spelling.
+const TWITTER_HOST = /^(?:(?:www|mobile)\.)?(?:twitter|x)\.com$/;
+const SITE_ALIASES = { "x.com": "twitter.com", "twitter.com": "x.com" };
+
+function canonicalHost(hostname) {
+  const h = hostname.toLowerCase();
+  return TWITTER_HOST.test(h) ? "x.com" : h.replace(/^www\./, "");
 }
 
 // Turn what a person typed ("https://Mastodon.Social/@me") into a bare host ("mastodon.social"),
@@ -63,6 +72,12 @@ export function urlQueries(input) {
     out.add(host + rest);
     out.add(bare + rest);
     out.add("www." + bare + rest);
+    // The same page may have been posted under its sibling domain (x.com ↔ twitter.com).
+    const alias = SITE_ALIASES[bare];
+    if (alias) {
+      out.add(alias + rest);
+      out.add("www." + alias + rest);
+    }
   }
   return [...out].slice(0, 4);
 }
