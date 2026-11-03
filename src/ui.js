@@ -122,10 +122,14 @@ async function main({ url, title, scan, openInTab }) {
   const counts = { hn: 0, lemmy: 0, lobsters: 0, mastodon: 0, reddit: 0 };
   let titleHits = 0;
   const sections = []; // the same results as plain rows, for "Save"
+  const anchors = {};  // service -> id of the first heading with results for it, so the tally can link to it
+  const mark = (k, node) => { if (!anchors[k]) { node.id = `sec-${k}`; anchors[k] = node.id; } };
   const addItems = (k, label, r, href, linkText) => {
     const list = fresh(r.items, (x) => x.url);
     if (!list.length) return;
-    out.append(header(label, href, linkText));
+    const head = header(label, href, linkText);
+    out.append(head);
+    mark(k, head);
     for (const it of list) { counts[k]++; out.append(renderItem(it)); }
     sections.push({ title: label, rows: list.map(rowOfItem) });
   };
@@ -135,8 +139,10 @@ async function main({ url, title, scan, openInTab }) {
   if (lobsters) addItems("lobsters", "Lobsters", lobsters);
 
   for (const r of mastodon) {
-    out.append(header(`Mastodon · ${r.host}`, `https://${r.host}/search?q=${encodeURIComponent(urlQueries(url)[0])}`, "search on web ↗"));
+    const head = header(`Mastodon · ${r.host}`, `https://${r.host}/search?q=${encodeURIComponent(urlQueries(url)[0])}`, "search on web ↗");
+    out.append(head);
     const linked = fresh(r.statuses, (x) => x.url);
+    if (linked.length) mark("mastodon", head);
     for (const s of linked) { counts.mastodon++; out.append(renderStatus(s)); }
     if (linked.length) sections.push({ title: `Mastodon · ${r.host}`, rows: linked.map(rowOfStatus) });
     const similar = fresh(r.titleStatuses, (x) => x.url);
@@ -150,7 +156,9 @@ async function main({ url, title, scan, openInTab }) {
   for (const p of publishers) {
     const list = fresh(p.statuses, (x) => x.url);
     if (!list.length) continue;
-    out.append(header(`Mastodon · page's own account ${p.label}`, null));
+    const head = header(`Mastodon · page's own account ${p.label}`, null);
+    out.append(head);
+    mark("mastodon", head);
     for (const s of list) { counts.mastodon++; out.append(renderStatus(s)); }
     sections.push({ title: `Mastodon · page's own account ${p.label}`, rows: list.map(rowOfStatus) });
   }
@@ -176,14 +184,27 @@ async function main({ url, title, scan, openInTab }) {
   const mastodonAsked = instances.length > 0 || publishers.length > 0;
   const tokenNeeded = instances.length > 0 && !mastodon.some((r) => r.searched);
   const tally = [];
-  const t = (name, r) => tally.push(r.ok ? `${name} ${counts[nameKey[name]]}` : `${name} ✕`);
+  const tallyKeys = []; // the service each tally entry is about (parallel to tally)
+  const t = (name, r) => { tally.push(r.ok ? `${name} ${counts[nameKey[name]]}` : `${name} ✕`); tallyKeys.push(nameKey[name]); };
   const nameKey = { "Hacker News": "hn", Lemmy: "lemmy", Lobsters: "lobsters", Mastodon: "mastodon", Reddit: "reddit" };
   if (hn) t("Hacker News", hn);
   if (lemmy.length) t("Lemmy", { ok: lemmy.some((r) => r.ok) });
   if (lobsters) t("Lobsters", lobsters);
-  if (mastodonAsked) tally.push(mastodonOk ? `Mastodon ${counts.mastodon}` : tokenNeeded ? "Mastodon: token needed" : "Mastodon ✕");
+  if (mastodonAsked) { tally.push(mastodonOk ? `Mastodon ${counts.mastodon}` : tokenNeeded ? "Mastodon: token needed" : "Mastodon ✕"); tallyKeys.push("mastodon"); }
   if (reddit) t("Reddit", reddit);
-  $("tally").textContent = tally.join(" · ");
+  // The service name (not the number) links to where that service's results begin, when there are any.
+  const tallyEl = $("tally");
+  tallyEl.replaceChildren();
+  tally.forEach((text, i) => {
+    if (i) tallyEl.append(" · ");
+    const id = anchors[tallyKeys[i]];
+    const name = text.match(/^[^\d✕:]*[^\d✕:\s]/)?.[0];   // "Hacker News" from "Hacker News 2"
+    if (!id || !name) { tallyEl.append(text); return; }
+    const a = el("a", null, name);
+    a.href = `#${id}`;
+    a.addEventListener("click", (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView?.({ block: "start" }); });
+    tallyEl.append(a, text.slice(name.length));
+  });
   if (tally.some((x) => x.includes("✕"))) $("notes").append(el("li", null, "✕ means every request to that source failed. See Details."));
   if (reddit?.forbidden) {
     const inTab = location.pathname.endsWith("/results.html");

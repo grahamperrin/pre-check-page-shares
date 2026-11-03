@@ -41,7 +41,8 @@ assert.ok(md.startsWith("## Pre-check: "));
 assert.ok(at("### Hacker News") > 0 && at("### Hacker News") < at("### Mastodon") && at("### Mastodon") < at("### Notes"));
 assert.ok(md.includes("- Checked: 2026-10-14 08:05"));
 assert.ok(md.includes("- Result: Found 2 posts with this link"));
-assert.ok(md.includes("- Places: Hacker News 1 · Mastodon 1"));
+// The service names (not the numbers) link to GitHub's anchors for the first heading of each service.
+assert.ok(md.includes("- Places: [Hacker News](#hacker-news) 1 · [Mastodon](#mastodon--pages-own-account-creativecommonsmastodonsocial) 1"), md);
 assert.ok(md.endsWith("_Saved by pre-check page shares 0.6.1._\n"));
 
 // Issue #3: nothing is indented, and every quote and every bullet is its own block, flush left, after a blank line
@@ -96,3 +97,23 @@ assert.equal(f({ title: "///???", url: "not a url" }), "pre-check-results-2026-1
 assert.equal(f({ title: "Türkiye: LGBTQ+ / 検閲?", url: "https://x.test/" }), "pre-check-türkiye-lgbtq-検閲-2026-10-14.md");
 assert.ok(!/[\\/:*?"<>|]/.test(f({ title: 'a/b\\c:d*e?f"g<h>i|j', url: "https://x.test/" })));
 console.log("markdown tests passed");
+
+// Anchors: GitHub drops punctuation (including "·" and "."), turns spaces into "-". Only services with results are linked,
+// "same title" sections are never the target, and a service with a count of 0 or a ✕ stays plain.
+const linked = buildMarkdown({
+  url: "https://x.test/", title: "t", checkedAt: when, summary: "s",
+  tally: "Hacker News 1 · Lemmy 3 · Lobsters 0 · Mastodon 2 · Reddit ✕",
+  sections: [
+    { title: "Hacker News", rows: [] },
+    { title: "Lemmy · lemmy.world", rows: [] },
+    { title: "Lemmy · lemmy.ml", rows: [] },
+    { title: "Mastodon · beige.party: same title, but no link to this page", rows: [] },
+    { title: "Mastodon · mastodon.social", rows: [] },
+  ],
+});
+assert.ok(linked.includes("- Places: [Hacker News](#hacker-news) 1 · [Lemmy](#lemmy--lemmyworld) 3 · Lobsters 0 · [Mastodon](#mastodon--mastodonsocial) 2 · Reddit ✕\n"), linked);
+// the token-needed message has no number and stays plain
+assert.ok(buildMarkdown({ url: "https://x.test/", title: "t", checkedAt: when, tally: "Mastodon: token needed", sections: [] }).includes("- Places: Mastodon: token needed\n"));
+// the document title ("Pre-check: …") is a heading too, so a page titled "Hacker News" does not take the anchor of the Hacker News section
+const dup = buildMarkdown({ url: "https://x.test/", title: "Hacker News", checkedAt: when, tally: "Hacker News 1", sections: [{ title: "Hacker News", rows: [] }] });
+assert.ok(dup.includes("- Places: [Hacker News](#hacker-news) 1"), dup);

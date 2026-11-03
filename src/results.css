@@ -29,6 +29,7 @@ h1 { margin: 0; font: 600 1.35rem/1.3 ui-serif, Georgia, "Times New Roman", seri
 .btn:hover { border-color: var(--accent); }
 #summary.hit { color: var(--accent); }
 #tally { margin: .4rem 0 1.75rem; font-size: .9rem; color: var(--muted); }
+#tally a { color: var(--accent); }
 
 .host { display: flex; justify-content: space-between; gap: 1rem; margin: 1.6rem 0 .5rem; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .host a { color: var(--accent); text-transform: none; letter-spacing: 0; }

@@ -19,6 +19,7 @@ main { overflow-y: auto; flex: 1; }
 .host a { color: var(--accent); text-transform: none; letter-spacing: 0; }
 .sub { padding: 6px 12px; font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--line); font-style: italic; }
 #tally { margin-top: 2px; font-size: 11px; color: var(--muted); }
+#tally a { color: var(--accent); }
 footer { border-top: 1px solid var(--line); font-size: 11px; }
 #notes { margin: 0 0 6px; }
 /* Details (left), Save (centre), Settings (right). Explicit columns keep Save centred even when Details or Save is hidden. */

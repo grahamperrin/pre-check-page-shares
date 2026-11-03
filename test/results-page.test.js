@@ -47,6 +47,10 @@ assert.equal(d.getElementById("page").textContent, PAGE);
 assert.equal(d.getElementById("summary").textContent, "Found 2 posts with this link");
 assert.deepEqual(heads(d), ["Hacker News", "Mastodon · page's own account @creativecommons@mastodon.social"]);
 assert.equal(d.getElementById("tally").textContent, "Hacker News 1 · Lobsters 0 · Mastodon 1");
+// Names link to the first heading of their results; Lobsters found nothing, so it stays plain text.
+assert.deepEqual([...d.querySelectorAll("#tally a")].map((x) => [x.textContent, x.getAttribute("href")]), [["Hacker News", "#sec-hn"], ["Mastodon", "#sec-mastodon"]]);
+assert.equal(d.getElementById("sec-hn").querySelector("span").textContent, "Hacker News");
+assert.equal(d.getElementById("sec-mastodon").querySelector("span").textContent, "Mastodon · page's own account @creativecommons@mastodon.social");
 
 // 1b. Save sits to the right of the headline, on the same line, and downloads Markdown
 assert.deepEqual([...d.querySelector(".headline").children].map((x) => x.id), ["summary", "save"]);

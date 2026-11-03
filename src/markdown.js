@@ -39,6 +39,20 @@ function text(t) {
   return out + ESC(s.slice(last));
 }
 
+// GitHub gives every heading an anchor: lower case, everything but letters, digits, "_", "-" and spaces dropped,
+// spaces turned into "-", and a repeated heading gets "-1", "-2"... The tally line links to these. (Reddit makes
+// no anchors, so there the links do nothing.)
+const plainHeading = (md) => md.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/\\(.)/g, "$1");
+function slugger() {
+  const seen = new Map();
+  return (heading) => {
+    const base = plainHeading(heading).toLowerCase().replace(/[^\p{L}\p{N}\p{M}_\- ]/gu, "").replace(/ /g, "-");
+    const n = seen.get(base) ?? 0;
+    seen.set(base, n + 1);
+    return n ? `${base}-${n}` : base;
+  };
+}
+
 // Cut at a word boundary, so a web address is never chopped in half.
 function truncate(s, max = 500) {
   if (s.length <= max) return s;
@@ -56,10 +70,28 @@ export function buildMarkdown(result) {
   out.push(`- Page: <${href(url)}>`);
   out.push(`- Checked: ${checkedAt instanceof Date ? localStamp(checkedAt) : esc(checkedAt)}`);
   if (summary) out.push(`- Result: ${esc(summary)}`);
-  if (tally) out.push(`- Places: ${esc(tally)}`);
+  const slug = slugger();
+  slug(`Pre-check: ${esc(title || url)}`);   // the document title is a heading too, and takes its anchor first
+  const anchorOf = new Map();    // service -> anchor of its first section
+  const headings = sections.map((section) => {
+    const h = text(section.title);
+    const id = slug(h);
+    const service = section.title.split(" · ")[0];
+    if (!section.title.includes(": same title") && !anchorOf.has(service)) anchorOf.set(service, id);
+    return h;
+  });
+  if (tally) {
+    // The service name (not its number) links to where that service's results begin, when it has some.
+    const parts = String(tally).split(" · ").map((part) => {
+      const m = /^(.*?)( \d+)$/.exec(part);
+      if (m && Number(m[2]) > 0 && anchorOf.has(m[1])) return `[${esc(m[1])}](#${anchorOf.get(m[1])})${m[2]}`;
+      return esc(part);
+    });
+    out.push(`- Places: ${parts.join(" · ")}`);
+  }
 
-  for (const section of sections) {
-    out.push("", `### ${text(section.title)}`);
+  for (const [i, section] of sections.entries()) {
+    out.push("", `### ${headings[i]}`);
     for (const r of section.rows) {
       out.push("", `**[${esc(r.title || r.url)}](${href(r.url)})**`);
       const facts = [

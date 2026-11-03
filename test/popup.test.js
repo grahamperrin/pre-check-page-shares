@@ -89,6 +89,15 @@ let r = await run({ store });
 console.log(r.summary, "|", r.tally); console.log(r.headers); console.log(r.log);
 assert.equal(r.summary, "Found 5 posts with this link");
 assert.equal(r.tally, "Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · Reddit 1");
+// Each service name in the tally (not its number) links to the first heading with that service's results.
+{
+  const links = [...r.d.querySelectorAll("#tally a")];
+  assert.deepEqual(links.map((x) => x.textContent), ["Hacker News", "Lemmy", "Lobsters", "Mastodon", "Reddit"]);
+  const target = (a) => r.d.getElementById(a.getAttribute("href").slice(1));
+  assert.deepEqual(links.map((x) => target(x)?.querySelector("span").textContent.split(" · ")[0]), ["Hacker News", "Lemmy", "Lobsters", "Mastodon", "Reddit"]);
+  assert.ok(links.every((x) => target(x).classList.contains("host")));
+  assert.equal(r.d.querySelector("#tally").childNodes[1].textContent, " 1");   // the number stays outside the link
+}
 assert.deepEqual(r.headers, ["Hacker News", "Lemmy · lemmy.world", "Lobsters", "Mastodon · mastodon.social", "Mastodon · page's own account @creativecommons@mastodon.social", "Reddit"]);
 assert.ok(r.requests.filter((q) => q.host !== "www.reddit.com").every((q) => q.credentials === "omit")); // no cookies anywhere...
 assert.ok(r.requests.filter((q) => q.host === "www.reddit.com").every((q) => q.credentials === "include")); // ...except Reddit, by design
@@ -115,7 +124,7 @@ const md = decodeURIComponent(r.downloads[0].href.slice(r.downloads[0].href.inde
 const pos = ["### Hacker News", "### Lemmy · lemmy.world", "### Lobsters", "### Mastodon · page's own account [@creativecommons@mastodon.social](https://mastodon.social/@creativecommons)", "### Reddit"].map((h) => md.indexOf(h));
 assert.ok(pos.every((p) => p > 0) && pos.every((p, i) => i === 0 || p > pos[i - 1]));  // every source present, in alphabetical order
 assert.ok(md.includes("- Result: Found 5 posts with this link"));
-assert.ok(md.includes("- Places: Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · Reddit 1"));
+assert.ok(md.includes("- Places: [Hacker News](#hacker-news) 1 · [Lemmy](#lemmy--lemmyworld) 1 · [Lobsters](#lobsters) 1 · [Mastodon](#mastodon--pages-own-account-creativecommonsmastodonsocial) 1 · [Reddit](#reddit) 1"), md);
 assert.ok(md.includes("](https://news.ycombinator.com/item?id=4242)"));
 assert.ok(!md.includes("TOKEN"));                                                         // the token never reaches the file
 // a local account has no @host in its handle; it is still written as a link, to a profile address rebuilt from the post's
@@ -144,6 +153,7 @@ assert.ok(!r.headers.some((h) => h.includes("page's own account")));
 // C: Reddit refuses everything: marked failed, others unaffected, and the user is told what the cross means.
 r = await run({ store, redditFails: true });
 assert.equal(r.tally, "Hacker News 1 · Lemmy 1 · Lobsters 1 · Mastodon 1 · Reddit ✕");
+assert.deepEqual([...r.d.querySelectorAll("#tally a")].map((x) => x.textContent), ["Hacker News", "Lemmy", "Lobsters", "Mastodon"]);   // ✕ has no results to link to
 assert.equal(r.summary, "Found 4 posts with this link");
 assert.ok(r.notes.some((n) => n.startsWith("✕ means")));
 assert.ok(r.notes.some((n) => n.startsWith("Reddit answered HTTP 403 (forbidden)")));
